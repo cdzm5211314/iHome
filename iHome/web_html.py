@@ -3,8 +3,8 @@
 # @Author : Administrator
 # @Date : 2019-09-19 20:35
 
-from flask import Blueprint, current_app
-
+from flask import Blueprint, current_app, make_response
+from flask_wtf import csrf
 # 创建提供静态文件的蓝图对象
 html = Blueprint('web_html', __name__)
 
@@ -28,7 +28,15 @@ def get_html(html_file_name):
         # 如果资源名不是favicon.ico,做拼接处理
         html_file_name = 'html/' + html_file_name
 
+    # 在静态路由中添加生成csrf_token的cookie值
+    # 1.创建一个csrf_token值
+    csrf_token = csrf.generate_csrf()
+    # 2.创建一个响应体对象
     # flask提供的专门用来返回静态文件的方法: send_static_file()
-    return current_app.send_static_file(html_file_name)
+    resp = make_response(current_app.send_static_file(html_file_name))
+    # 3.设置cookie的值
+    resp.set_cookie('csrf_token',csrf_token)
+
+    return resp
 
 
