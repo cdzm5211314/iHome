@@ -9,6 +9,7 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_session import Session  # 自定义session的存储位置,安装: pip install flask-session
 from flask_wtf import CSRFProtect  # csrf防护机制
 from logging.handlers import RotatingFileHandler
+from iHome.utils.commons import RegexConverter  # 导入自定义的万能正则转换器
 
 import redis  # 缓存 + session
 import logging
@@ -58,9 +59,16 @@ def create_app(config_name):
     # flask补充csrf防护
     CSRFProtect(app)
 
+    # 2.将自定义的万能正则转换器添加到Flask的应用中,注意,要放在注册蓝图之前
+    app.url_map.converters['re'] = RegexConverter
+
     # 注册蓝图
     from iHome import api_1_0  # 解决循环导入
     app.register_blueprint(api_1_0.api, url_prefix='/api/v1.0')
+
+    # 注册提供静态文件的蓝图
+    from iHome import web_html
+    app.register_blueprint(web_html.html)
 
     return app
 
