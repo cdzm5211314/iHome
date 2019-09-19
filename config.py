@@ -11,7 +11,7 @@ class Config(object):
 
     # 数据库
     # SQLAlchemy配置参数: 设置链接数据库的URL
-    SQLALCHEMY_DATABASE_URI = "mysql://root:root@127.0.0.1:3306/flaskdemo"
+    SQLALCHEMY_DATABASE_URI = "mysql://root:root@127.0.0.1:3306/ihome"
     # SQLAlchemy配置参数: 设置sqlalchemy自动更新跟踪数据库
     SQLALCHEMY_TRACK_MODIFICATIONS = True
     # SQLAlchemy配置参数: 数据库查询时显示原始SQL语句(程序调试的时候可以使用)

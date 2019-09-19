@@ -24,5 +24,8 @@ manager.add_command('db',MigrateCommand)
 
 if __name__ == '__main__':
     manager.run()
-
+    # 终端命令操作:
+    # 1.创建迁移仓库(初始化): python manage.py db init
+    # 2.创建迁移文件: python manage.py db migrate -m "init table"
+    # 3.更新数据库: python manage.py db upgrade
 

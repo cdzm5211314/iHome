@@ -22,7 +22,7 @@ redis_store = None
 
 # 配置日志信息
 # 设置日志的记录等级
-logging.basicConfig(level=logging.DEBUG)
+logging.basicConfig(level=logging.INFO)  # config配置信息debug调试模式会强制覆盖此处设置的日志级别
 # 创建日志记录器，指明日志保存的路径、每个日志文件的最大大小、保存的日志文件个数上限
 file_log_handler = RotatingFileHandler("logs/log", maxBytes=1024*1024*100, backupCount=10)
 # 创建日志记录的格式                 日志等级    输入日志信息的文件名 行数    日志信息
@@ -48,7 +48,7 @@ def create_app(config_name):
     # 使用app初始化db
     db.init_app(app)
 
-    # 初始化redis工具
+    # 初始化redis工具 - 缓存
     global redis_store
     redis_store = redis.StrictRedis(host=config_class.REDIS_HOST, port=config_class.REDIS_PORT)
 

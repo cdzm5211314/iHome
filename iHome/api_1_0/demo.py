@@ -4,7 +4,7 @@
 # @Date : 2019-09-17 23:58
 
 from . import api
-from iHome import db
+from iHome import db, models
 
 
 # 使用蓝图对象注册路由
