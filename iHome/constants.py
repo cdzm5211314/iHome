@@ -9,3 +9,6 @@ IMAGE_CODE_REDIS_EXPIRE = 180
 
 # 短信验证码的redis有效期,秒
 SMS_CODE_REDIS_EXPIRE = 300
+
+# 发送短信验证码的间隔时间,秒
+SEND_SMS_CODE_INTERVAL = 60
