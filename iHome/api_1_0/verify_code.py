@@ -80,6 +80,13 @@ def get_sms_code(mobile):
         # 表示图片验证码没有或过期
         return jsonify(errno=RET.NODATA, errmsg="图片验证码失效")
 
+    # 删除redis中的图片验证码: 防止用户使用同一个图片验证码验证多次(使用多次)
+    try:
+        redis_store.delete("image_code_%s" % image_code_id)
+    except Exception as e:
+        # 记录日志
+        current_app.logger.error(e)
+
     # 与用户填写的验证码进行对比
     if real_image_code.lower() != image_code.lower():
         # 表示用户填写错误
