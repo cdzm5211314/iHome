@@ -29,3 +29,8 @@ if __name__ == '__main__':
     # 2.创建迁移文件: python manage.py db migrate -m "init table"
     # 3.更新数据库: python manage.py db upgrade
 
+    # 后端视图开发的一般套路步骤: 如下
+    # 1.获取参数
+    # 2.校验参数
+    # 3.业务逻辑处理
+    # 4.返回值
