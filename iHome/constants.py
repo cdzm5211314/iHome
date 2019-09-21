@@ -7,5 +7,5 @@
 # 图片验证码的redis有效期,秒
 IMAGE_CODE_REDIS_EXPIRE = 180
 
-
-
+# 短信验证码的redis有效期,秒
+SMS_CODE_REDIS_EXPIRE = 300
