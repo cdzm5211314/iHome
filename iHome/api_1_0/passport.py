@@ -177,3 +177,27 @@ def login():
 
     # 返回值
     return jsonify(errno=RET.OK, errmsg="登录成功")
+
+
+# GET http://127.0.0.1:5000/api/v1.0/session/
+@api.route('/session', methods=["GET"])
+def check_login():
+    """检查登录状态"""
+    # 尝试从session中获取用户的名字
+    name = session.get("name")
+    # 判断获取的name名字是否存在,存在说明已经登录,否则未登录
+    if name is not None:
+        return jsonify(errno=RET.OK, errmsg="true", data={"name":name})
+    else:
+        return jsonify(errno=RET.SESSIONERR, errmsg="false")
+
+
+# DELETE http://127.0.0.1:5000/api/v1.0/session/
+@api.route('/session', methods=["DELETE"])
+def logout():
+    """退出登录"""
+    # 消除session数据
+    session.clear()
+    return jsonify(errno=RET.OK, errmsg="OK")
+
+
