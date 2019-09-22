@@ -5,16 +5,18 @@
 
 from . import api
 from flask import request, jsonify, current_app, session
+from werkzeug.security import generate_password_hash, check_password_hash
+from sqlalchemy.exc import IntegrityError
 from iHome.utils.response_code import RET
 from iHome import redis_store, db
 from iHome.models import User
-from sqlalchemy.exc import IntegrityError
+
 import re
 
 
-# GET http://127.0.0.1:5000/api/v1.0/users/
-@api.route('/users')
-def get_image_code():
+# POST http://127.0.0.1:5000/api/v1.0/users/
+@api.route('/users', methods=["POST"])
+def register():
     """"用户注册
     请求的参数: 手机号, 验证码, 密码, 确认密码
     参数格式: json
@@ -27,7 +29,7 @@ def get_image_code():
     sms_code = req_dict.get('sms_code')
     password = req_dict.get('password')
     password2 = req_dict.get('password2')
-
+    print(mobile,sms_code,password,password2)
     # 校验参数:
     # 校验参数是否完整
     if not all([mobile, sms_code, password, password2]):
@@ -81,6 +83,8 @@ def get_image_code():
     #         return jsonify(errno=RET.DATAEXIST, errmsg="手机号已存在")
 
     # 保存用户注册信息到数据库
+    # password_hash = generate_password_hash(password)  # 密码加密
+    # user = User(name=mobile, password_hash=password_hash, mobile=mobile)
     user = User(name=mobile, password_hash=password, mobile=mobile)
     try:
         db.session.add(user)
