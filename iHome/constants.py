@@ -12,3 +12,9 @@ SMS_CODE_REDIS_EXPIRE = 300
 
 # 发送短信验证码的间隔时间,秒
 SEND_SMS_CODE_INTERVAL = 60
+
+# 登录错误尝试次数
+LOGIN_ERROR_MAX_TIMES = 5
+
+# 登录错误的限制时间,秒
+LOGIN_ERROR_FORBID_TIME = 600

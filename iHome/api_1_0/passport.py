@@ -5,10 +5,10 @@
 
 from . import api
 from flask import request, jsonify, current_app, session
-from werkzeug.security import generate_password_hash, check_password_hash
+# from werkzeug.security import generate_password_hash, check_password_hash
 from sqlalchemy.exc import IntegrityError
 from iHome.utils.response_code import RET
-from iHome import redis_store, db
+from iHome import redis_store, db,constants
 from iHome.models import User
 
 import re
@@ -110,3 +110,70 @@ def register():
 
     # 返回值:
     return jsonify(errno=RET.OK, errmsg="注册成功")
+
+
+# POST http://127.0.0.1:5000/api/v1.0/sessions/
+@api.route('/sessions', methods=["POST"])
+def login():
+    """用户登录
+    请求参数: 手机号 密码
+    参数格式: json
+    """
+    print "bbb"
+    # 获取参数
+    print request.get_json()
+    req_dict = request.get_json()
+    mobile = req_dict.get('mobile')
+    password = req_dict.get('password')
+
+    # 校验参数
+    # 校验参数是否完整
+    if not all([mobile, password]):
+        # 参数信息不完整
+        return jsonify(errno=RET.PARAMERR, errmsg="参数不完整")
+
+    # 校验手机号格式是否正确
+    if not re.match(r'1[34578]\d{9}', mobile):
+        # 手机格式不正确
+        return jsonify(errno=RET.PARAMERR, errmsg="手机格式不正确")
+
+    # 判断用户输入错误次数是否超过限制,如果超过限制,则不允许继续操作
+    # redis记录: "access_nums_请求的IP":"次数"
+    user_ip = request.remote_addr  # 用户请求的IP地址
+    try:
+        access_nums = redis_store.get("access_num_%s" % user_ip)
+    except Exception as e:
+        # 记录日志
+        current_app.logger.error(e)
+    else:
+        if access_nums is not None and int(access_nums) >= constants.LOGIN_ERROR_MAX_TIMES:
+            # redis中有记录并且错误次数大于5,阻止继续执行操作
+            return jsonify(errno=RET.REQERR,errmsg="错误次数过多,请稍后重试")
+
+    # 业务逻辑处理
+    # 根据手机号从数据库查询用户的数据对象
+    try:
+        user = User.query.filter_by(mobile=mobile).first()
+    except Exception as e:
+        # 记录日志
+        current_app.logger.error(e)
+        return jsonify(errno=RET.DBERR, errmsg="获取用户信息失败")
+
+    # 用数据库中的密码与用户填写的密码进行对比验证是否一致
+    if user is None or not user.check_password(password):
+        # 如果登录验证失败,记录错误次数,返回信息
+        try:
+            redis_store.incr("access_num_%s" % user_ip)
+            redis_store.expire("access_num_%s" % user_ip, constants.LOGIN_ERROR_FORBID_TIME)
+        except Exception as e:
+            # 记录日志
+            current_app.logger.error(e)
+        return jsonify(errno=RET.DATAERR, errmsg="用户名或密码错误")
+
+    # 如果登录验证相同,保存登录状态,在session中
+    session["name"] = user.name
+    session["mobile"] = user.mobile
+    session["user_id"] = user.id
+
+    # 返回值
+    return jsonify(errno=RET.OK, errmsg="登录成功")
