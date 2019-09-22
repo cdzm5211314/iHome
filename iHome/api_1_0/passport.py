@@ -86,6 +86,7 @@ def register():
     # password_hash = generate_password_hash(password)  # 密码加密
     # user = User(name=mobile, password_hash=password_hash, mobile=mobile)
     user = User(name=mobile, password_hash=password, mobile=mobile)
+    user.password = password  # 设置密码属性,即给密码进行加密
     try:
         db.session.add(user)
         db.session.commit()

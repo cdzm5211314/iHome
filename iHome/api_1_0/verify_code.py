@@ -121,7 +121,8 @@ def get_sms_code(mobile):
     try:
         redis_store.setex("sms_code_%s" % mobile, constants.SMS_CODE_REDIS_EXPIRE, sms_code)
         # 保存发送给这个手机号的验证码记录,防止用户在60秒内再次触发发送短信验证码的操作
-        redis_store.setex("send_sms_code_%s" % mobile, constants.SEND_SMS_CODE_INTERVAL, 1)
+        # redis_store.setex("send_sms_code_%s" % mobile, constants.SEND_SMS_CODE_INTERVAL, 1)
+        redis_store.setex("send_sms_code_%s" % mobile, constants.SEND_SMS_CODE_INTERVAL, "保存发送验证码记录,防止60秒内再次发送的操作")
     except Exception as e:
         # 记录日志
         current_app.logger.error(e)

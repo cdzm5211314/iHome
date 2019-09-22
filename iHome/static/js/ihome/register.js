@@ -1,3 +1,4 @@
+// js读取cookie的方法
 function getCookie(name) {
     var r = document.cookie.match("\\b" + name + "=([^;]*)\\b");
     return r ? r[1] : undefined;
@@ -24,7 +25,7 @@ function generateImageCode() {
     // 1.生成图片验证码编号
     imageCodeId = generateUUID();
     // 2.拼接获取验证码图片的url
-    var url = "/api/v1.0/image_codes/" + imageCodeId
+    var url = "/api/v1.0/image_codes/" + imageCodeId;
     $(".image-code img").attr("src",url);
 
 }
@@ -99,12 +100,16 @@ $(document).ready(function() {
     $("#password2").focus(function(){
         $("#password2-err").hide();
     });
+
+    // 为表单的提交补充自定义的函数行为(提交事件e)
     $(".form-register").submit(function(e){
+        // 阻止浏览器对于表单的默认自动提交行为
         e.preventDefault();
-        mobile = $("#mobile").val();
-        phoneCode = $("#phonecode").val();
-        passwd = $("#password").val();
-        passwd2 = $("#password2").val();
+        // 获取页面填写的数据信息
+        var mobile = $("#mobile").val();
+        var phoneCode = $("#phonecode").val();
+        var passwd = $("#password").val();
+        var passwd2 = $("#password2").val();
         if (!mobile) {
             $("#mobile-err span").html("请填写正确的手机号！");
             $("#mobile-err").show();
@@ -125,5 +130,34 @@ $(document).ready(function() {
             $("#password2-err").show();
             return;
         }
+        // 使用ajax向后端发送注册请求
+        // 构造请求参数对象
+        req_data = {
+            mobile: mobile,
+            sms_code: phoneCode,
+            password: passwd,
+            password2: passwd2,
+        };
+        var req_json = JSON.stringify(req_data);  // 转换为json字符串数据
+        // POST http://127.0.0.1:5000/api/v1.0/users/
+        $.ajax({
+            url: "/api/v1.0/users",  // 请求的url路径
+            type: "post",  // 请求方式
+            data: req_json,  // 请求数据
+            contentType: "application/json",  // 请求数据类型
+            dataType: "json",  // 后端返回数据类型
+            // 请求头,将csrf_token值放到请求中,方便后端csrf进行验证
+            headers: {
+                "X-CSRFToken": getCookie("csrf_token")
+            },
+            success: function (resp) {
+                if (resp.errno == "0"){
+                    // 注册成功,跳转到主页
+                    location.href = "/index.html"
+                }else {
+                    alert(resp.errmsg)
+                }
+            }
+        });
     });
 })
