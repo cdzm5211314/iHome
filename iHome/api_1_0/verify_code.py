@@ -5,7 +5,7 @@
 
 from . import api
 from iHome.utils.captcha.captcha import captcha
-from iHome import redis_store, constants, db
+from iHome import redis_store, constants
 from flask import current_app, jsonify, make_response, request
 from iHome.utils.response_code import RET
 from iHome.models import User
@@ -73,7 +73,7 @@ def get_sms_code(mobile):
     except Exception as e:
         # 记录日志
         current_app.logger.error(e)
-        return jsonify(errno=RET.DBERR,errmsg="redis数据库异常")
+        return jsonify(errno=RET.DBERR, errmsg="redis数据库异常")
 
     # 判断获取的真实图片验证码是否过期
     if real_image_code is None:
@@ -94,14 +94,14 @@ def get_sms_code(mobile):
 
     # 判断对于这个手机号的操作,在60秒内有没有之前的记录,如果有,则认为是用户操作频繁,不接受处理
     try:
-        send_flag = redis_store.get("send_sms_code_%s" %mobile)
+        send_flag = redis_store.get("send_sms_code_%s" % mobile)
     except Exception as e:
         # 记录日志
         current_app.logger.error(e)
     else:
         if send_flag is not None:
             # 表示在60秒内之前有发送过的记录
-            return jsonify(errno=RET.REQERR , errmsg="请求过于频繁,请60秒后再试")
+            return jsonify(errno=RET.REQERR, errmsg="请求过于频繁,请60秒后再试")
 
     # 判断注册的手机号是否存在
     try:
@@ -119,9 +119,9 @@ def get_sms_code(mobile):
 
     # 保存真实的短信验证码到redis中
     try:
-        redis_store.setex("sms_code_%s" %mobile, constants.SMS_CODE_REDIS_EXPIRE, sms_code)
+        redis_store.setex("sms_code_%s" % mobile, constants.SMS_CODE_REDIS_EXPIRE, sms_code)
         # 保存发送给这个手机号的验证码记录,防止用户在60秒内再次触发发送短信验证码的操作
-        redis_store.setex("send_sms_code_%s" %mobile, constants.SEND_SMS_CODE_INTERVAL, 1)
+        redis_store.setex("send_sms_code_%s" % mobile, constants.SEND_SMS_CODE_INTERVAL, 1)
     except Exception as e:
         # 记录日志
         current_app.logger.error(e)
@@ -130,7 +130,7 @@ def get_sms_code(mobile):
     # 发送短信
     try:
         cpp = CCP()
-        result = cpp.send_Template_SMS(mobile, [sms_code, int(constants.SMS_CODE_REDIS_EXPIRE/60)], 1)
+        result = cpp.send_Template_SMS(mobile, [sms_code, int(constants.SMS_CODE_REDIS_EXPIRE / 60)], 1)
     except Exception as e:
         # 记录日志
         current_app.logger.error(e)
@@ -143,5 +143,3 @@ def get_sms_code(mobile):
     else:
         # 表示短信发送失败
         return jsonify(errno=RET.THIRDERR, errmsg="发送失败")
-
-
