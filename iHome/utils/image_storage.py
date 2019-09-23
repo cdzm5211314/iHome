@@ -40,7 +40,14 @@ def storage(file_data):
     # 注: 返回值info是一个对象,包含状态码status_code:200(表示上传成功)
     # 注: 返回值ret是一个字典,hash:哈希计算结果值和key:上传后的文件名字,因为此前未指定上传文件的名字,所以上传后的文件名字使用的是哈希计算结果值
 
-    print(info)
+    if info.status == 200:
+        # 表示上传成功,返回文件名字
+        return ret.get("key")
+    else:
+        # 表示上传失败
+        raise Exception("图片上传七牛失败")
+
+    # print(info)
     # assert ret['key'] == key
     # assert ret['hash'] == etag(localfile)
 

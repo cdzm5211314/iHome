@@ -18,3 +18,6 @@ LOGIN_ERROR_MAX_TIMES = 5
 
 # 登录错误的限制时间,秒
 LOGIN_ERROR_FORBID_TIME = 600
+
+# 七牛的域名
+QINIU_URL_DOMAIN = ""
