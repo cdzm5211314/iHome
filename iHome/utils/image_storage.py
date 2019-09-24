@@ -40,7 +40,7 @@ def storage(file_data):
     # 注: 返回值info是一个对象,包含状态码status_code:200(表示上传成功)
     # 注: 返回值ret是一个字典,hash:哈希计算结果值和key:上传后的文件名字,因为此前未指定上传文件的名字,所以上传后的文件名字使用的是哈希计算结果值
 
-    if info.status == 200:
+    if info.status_code == 200:
         # 表示上传成功,返回文件名字
         return ret.get("key")
     else:
@@ -52,7 +52,9 @@ def storage(file_data):
     # assert ret['hash'] == etag(localfile)
 
 if __name__ == '__main__':
-    with open("iHome/Note/数据库模型关系.png","rb") as ft:
+    with open("C:\\Users\\Administrator\\Desktop\\2019.png","rb") as ft:
         file_data = ft.read()
-        storage(file_data)
+        ret = storage(file_data)
+        # print ret
+
 

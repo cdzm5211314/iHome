@@ -41,7 +41,7 @@ def set_user_avatar():
 
     # 保存文件名到数据库中
     try:
-        user = User.query.filter_by(id=user_id).update({"avatar_url": file_name})
+        User.query.filter_by(id=user_id).update({"avatar_url": file_name})
         db.session.commit()
     except Exception as e:
         # 保存失败,事务回滚

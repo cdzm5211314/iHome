@@ -27,8 +27,8 @@ $(document).ready(function () {
             success: function (resp) {
                 if (resp.errno == "0"){
                     //上传成功
-                    var aratarUrl= resp.data.aratar_url;
-                    $("#user-avatar").attr("src",aratarUrl);
+                    var avatarUrl= resp.data.avatar_url;
+                    $("#user-avatar").attr("src",avatarUrl);
                 }else{
                     alert(resp.errmsg)
                 }
