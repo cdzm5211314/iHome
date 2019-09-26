@@ -22,4 +22,5 @@ LOGIN_ERROR_FORBID_TIME = 600
 # 七牛的域名
 QINIU_URL_DOMAIN = "http://pybuvc2az.bkt.clouddn.com/"
 
-
+# 城区信息的缓存时间,秒
+AREA_INFO_REDIS_CACHE_EXPIRE = 7200
