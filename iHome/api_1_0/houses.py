@@ -6,12 +6,10 @@
 import json
 
 from . import api
-from flask import g, current_app, jsonify, request
-from iHome.utils.commons import login_required
+from flask import current_app, jsonify
 from iHome.utils.response_code import RET
-from iHome.utils.image_storage import storage
 from iHome.models import Area
-from iHome import db, constants, redis_store
+from iHome import constants, redis_store
 
 
 # GET http://127.0.0.1:5000/api/v1.0/areas
