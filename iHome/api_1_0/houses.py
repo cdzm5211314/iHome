@@ -54,12 +54,12 @@ def get_area_info():
     return resp_json, 200, {"Content-Type":"application/json"}
 
 
-# POST http://127.0.0.1:5000/api/v1.0/house/info
-@api.route("/house/info", methods=["POST"])
+# POST http://127.0.0.1:5000/api/v1.0/houses/info
+@api.route("/houses/info", methods=["POST"])
 @login_required
 def save_house_info():
-    """保存房屋基本信息
-    前端发送过来的json数据:
+    """保存房屋的基本信息
+    前端发送过来的json数据
     {
         "title":"",
         "price":"",
@@ -73,13 +73,12 @@ def save_house_info():
         "deposit":"",
         "min_days":"",
         "max_days":"",
-        "facility":["7","8"]  # 可以为空
+        "facility":["7","8"]
     }
     """
-
     # 获取数据
     user_id = g.user_id
-    house_data = request.get_json()  # 获取前端发送的json数据
+    house_data = request.get_json()
 
     title = house_data.get("title")  # 房屋名称标题
     price = house_data.get("price")  # 房屋单价
@@ -95,9 +94,7 @@ def save_house_info():
     max_days = house_data.get("max_days")  # 最大入住天数
 
     # 校验参数
-    # 校验参数是否完整
-    if not all(
-            [title, price, area_id, address, room_count, acreage, unit, capacity, beds, deposit, min_days, max_days]):
+    if not all([title, price, area_id, address, room_count, acreage, unit, capacity, beds, deposit, min_days, max_days]):
         return jsonify(errno=RET.PARAMERR, errmsg="参数不完整")
 
     # 判断金额是否正确
@@ -115,11 +112,9 @@ def save_house_info():
         current_app.logger.error(e)
         return jsonify(errno=RET.DBERR, errmsg="数据库异常")
 
-    # 城区id不存在
     if area is None:
         return jsonify(errno=RET.NODATA, errmsg="城区信息有误")
 
-    # 业务逻辑处理
     # 保存房屋信息
     house = House(
         user_id=user_id,
@@ -145,7 +140,6 @@ def save_house_info():
         # ["7","8"]
         try:
             # select  * from ih_facility_info where id in []
-            # 查询设施信息参数的id是否在数据库中
             facilities = Facility.query.filter(Facility.id.in_(facility_ids)).all()
         except Exception as e:
             current_app.logger.error(e)
@@ -155,6 +149,7 @@ def save_house_info():
             # 表示有合法的设施数据
             # 保存设施数据
             house.facilities = facilities
+            print "**********************"
 
     try:
         db.session.add(house)
@@ -164,11 +159,11 @@ def save_house_info():
         db.session.rollback()
         return jsonify(errno=RET.DBERR, errmsg="保存数据失败")
 
-    # 返回值: 保存数据成功
+    # 保存数据成功
     return jsonify(errno=RET.OK, errmsg="OK", data={"house_id": house.id})
 
 
-# POST http://127.0.0.1:5000/api/v1.0/house/image
+# POST http://127.0.0.1:5000/api/v1.0/houses/image
 @api.route("/houses/image", methods=["POST"])
 @login_required
 def save_house_image():

@@ -60,4 +60,26 @@ $(document).ready(function(){
         })
     });
 
+    // 保存房屋图片数据
+    $("#form-house-image").submit(function (e) {
+        e.preventDefault();
+        $(this).ajaxSubmit({
+            url: "/api/v1.0/houses/image",
+            type: "post",
+            dataType: "json",
+            headers: {
+                "X-CSRFToken": getCookie("csrf_token"),
+            },
+            success: function (resp) {
+                if (resp.errno == "4101") {
+                    location.href = "/login.html";
+                } else if (resp.errno == "0") {
+                    $(".house-image-cons").append('<img src="' + resp.data.image_url +'">');
+                } else {
+                    alert(resp.errmsg);
+                }
+            }
+        })
+    })
+
 });
