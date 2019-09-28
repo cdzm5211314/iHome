@@ -3,6 +3,9 @@
 # @Author : Administrator
 # @Date : 2019-09-20 20:05
 
+
+# from iHome.tasks.task_sms import send_sms
+from iHome.tasks.sms.tasks import send_sms
 from . import api
 from iHome.utils.captcha.captcha import captcha
 from iHome import redis_store, constants
@@ -51,10 +54,106 @@ def get_image_code(image_code_id):
     return resp
 
 
+# # GET http://127.0.0.1:5000/api/v1.0/sms_codes/<mobile>?image_code=xxx&image_code_id=yyy
+# @api.route('/sms_codes/<re(r"1[34578]\d{9}"):mobile>')
+# def get_sms_code(mobile):
+#     """获取短信验证码"""
+#
+#     # 1.获取参数
+#     image_code = request.args.get("image_code")
+#     image_code_id = request.args.get("image_code_id")
+#
+#     # 2.校验参数
+#     # 参数是否完整
+#     if not all([image_code, image_code_id]):
+#         # 表示参数不完整
+#         return jsonify(errno=RET.PARAMERR, errmsg="参数不完整")
+#
+#     # 3.业务逻辑处理
+#     # 从redis中获取真实的图片验证码值
+#     try:
+#         real_image_code = redis_store.get("image_code_%s" % image_code_id)
+#     except Exception as e:
+#         # 记录日志
+#         current_app.logger.error(e)
+#         return jsonify(errno=RET.DBERR, errmsg="redis数据库异常")
+#
+#     # 判断获取的真实图片验证码是否过期
+#     if real_image_code is None:
+#         # 表示图片验证码没有或过期
+#         return jsonify(errno=RET.NODATA, errmsg="图片验证码失效")
+#
+#     # 删除redis中的图片验证码: 防止用户使用同一个图片验证码验证多次(使用多次)
+#     try:
+#         redis_store.delete("image_code_%s" % image_code_id)
+#     except Exception as e:
+#         # 记录日志
+#         current_app.logger.error(e)
+#
+#     # 与用户填写的验证码进行对比
+#     if real_image_code.lower() != image_code.lower():
+#         # 表示用户填写错误
+#         return jsonify(errno=RET.DATAERR, errmsg="图片验证码错误")
+#
+#     # 判断对于这个手机号的操作,在60秒内有没有之前的记录,如果有,则认为是用户操作频繁,不接受处理
+#     try:
+#         send_flag = redis_store.get("send_sms_code_%s" % mobile)
+#     except Exception as e:
+#         # 记录日志
+#         current_app.logger.error(e)
+#     else:
+#         if send_flag is not None:
+#             # 表示在60秒内之前有发送过的记录
+#             return jsonify(errno=RET.REQERR, errmsg="请求过于频繁,请60秒后再试")
+#
+#     # 判断注册的手机号是否存在
+#     try:
+#         user = User.query.filter_by(mobile=mobile).first()
+#     except Exception as e:
+#         # 记录日志
+#         current_app.logger.error(e)
+#     else:
+#         if user is not None:
+#             # 表示手机号存在
+#             return jsonify(errno=RET.DATAEXIST, errmsg="手机号已存在")
+#
+#     # 如果手机号不存在,则生成短信验证码
+#     sms_code = "%06d" % random.randint(0, 999999)
+#
+#     # 保存真实的短信验证码到redis中
+#     try:
+#         redis_store.setex("sms_code_%s" % mobile, constants.SMS_CODE_REDIS_EXPIRE, sms_code)
+#         # 保存发送给这个手机号的验证码记录,防止用户在60秒内再次触发发送短信验证码的操作
+#         # redis_store.setex("send_sms_code_%s" % mobile, constants.SEND_SMS_CODE_INTERVAL, 1)
+#         redis_store.setex("send_sms_code_%s" % mobile, constants.SEND_SMS_CODE_INTERVAL, "保存发送验证码记录,防止60秒内再次发送的操作")
+#     except Exception as e:
+#         # 记录日志
+#         current_app.logger.error(e)
+#         return jsonify(errno=RET.DATAERR, errmsg="保存短信验证码异常")
+#
+#     # 发送短信
+#     try:
+#         cpp = CCP()
+#         result = cpp.send_Template_SMS(mobile, [sms_code, int(constants.SMS_CODE_REDIS_EXPIRE / 60)], 1)
+#     except Exception as e:
+#         # 记录日志
+#         current_app.logger.error(e)
+#         return jsonify(errno=RET.THIRDERR, errmsg="发送异常")
+#
+#     # 4.返回值
+#     if result == 0:
+#         # 表示短信发送成功
+#         return jsonify(errno=RET.OK, errmsg="发送成功")
+#     else:
+#         # 表示短信发送失败
+#         return jsonify(errno=RET.THIRDERR, errmsg="发送失败")
+
+
 # GET http://127.0.0.1:5000/api/v1.0/sms_codes/<mobile>?image_code=xxx&image_code_id=yyy
+
 @api.route('/sms_codes/<re(r"1[34578]\d{9}"):mobile>')
 def get_sms_code(mobile):
-    """获取短信验证码"""
+    """使用celery异步任务发送短信验证码"""
 
     # 1.获取参数
     image_code = request.args.get("image_code")
@@ -129,18 +228,10 @@ def get_sms_code(mobile):
         return jsonify(errno=RET.DATAERR, errmsg="保存短信验证码异常")
 
     # 发送短信
-    try:
-        cpp = CCP()
-        result = cpp.send_Template_SMS(mobile, [sms_code, int(constants.SMS_CODE_REDIS_EXPIRE / 60)], 1)
-    except Exception as e:
-        # 记录日志
-        current_app.logger.error(e)
-        return jsonify(errno=RET.THIRDERR, errmsg="发送异常")
+    # 使用celery异步发送手机短信验证码,delay调用后立即返回
+    send_sms.delay(mobile, [sms_code, int(constants.SMS_CODE_REDIS_EXPIRE / 60)], 1)
 
     # 4.返回值
-    if result == 0:
-        # 表示短信发送成功
-        return jsonify(errno=RET.OK, errmsg="发送成功")
-    else:
-        # 表示短信发送失败
-        return jsonify(errno=RET.THIRDERR, errmsg="发送失败")
+    return jsonify(errno=RET.OK, errmsg="发送成功")
+
+
